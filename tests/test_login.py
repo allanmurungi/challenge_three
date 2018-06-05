@@ -25,35 +25,20 @@ class BasicTests(unittest.TestCase):
     def test_login_missing_email(self):
         """"""
         response=self.login("","qwertyuiop");
-        self.assertEqual(response.status_code, 401)
-        assert b'no username/email entered' in response.data
+        self.assertEqual(response.status_code, 400)
+        assert b'no username or email entered' in response.data
         
         
     def test_login_missing_password(self):
         response=self.login("p@gmail.com","");
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 400)
         assert b'no password given' in response.data    
         
-    def test_login_default_admin(self):
-        response=self.login("admin@andela.com","default");
-        self.assertEqual(response.status_code, 200)
-        assert b'you have logged in as default admin' in response.data
+    
 
-    def test_succesful_login(self):
-        response=self.login("p@gmail.com","qwertyuiop");
-        self.assertEqual(response.status_code, 200)
-        assert b'you have logged in succesfully' in response.data
-
-            
-    def test_succesful_login_fail(self):
-        response=self.login("x@gmail.com","hhfhf");
-        self.assertEqual(response.status_code, 401)
-        assert b"Wrong credentials" in response.data
-        
-    def test_succesful_login_user_not_exist(self):
-        response=self.login("x@gmail.com","qwertyuiop");
-        self.assertEqual(response.status_code, 401)
-        assert b'User doesn\'t exist' in response.data
+    
+    
+    
         
     def test_login_empty_params(self):
         response=self.login("","");
@@ -64,8 +49,8 @@ class BasicTests(unittest.TestCase):
     
 
         
-    def login(self,email,password):
-        return self.app.post('/login',data=dict(email=email,password=password),follow_redirects=True);
+    def login(self,email,password1):
+        return self.app.post('/login',data=dict(email=email,password1=password1),follow_redirects=True);
             
 
 

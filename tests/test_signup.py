@@ -23,41 +23,26 @@ class BasicTests(unittest.TestCase):
         self.assertEqual(app.debug, False)
 
     def test_signup_empty_params(self):
-        response=self.sign_up("","","");
+        response=self.signup("","","");
         self.assertEqual(response.status_code, 400)
         assert b'you have not entered any details' in response.data
         
     def test_signup_missing_password1(self):
-        response=self.sgnup("p@gmail.com","qwertyuiop","");
+        response=self.signup("p@gmail.com","qwertyuiop","");
         self.assertEqual(response.status_code, 400)
         assert b'second password missing' in response.data
 
     def test_sgnup_missing_password2(self):
         response=self.signup("p@gmail.com","","qwertyuiop");
         self.assertEqual(response.status_code, 400)
-        assert b' password missing' in response.data
+        assert b'password missing' in response.data
         
     def test_signup_missing_email(self):
         response=self.signup("","qwertyuiop","qwertyuiop");
         self.assertEqual(response.status_code, 400)
         assert b'email address not given' in response.data
         
-    def test_succesful_signup(self):
-        response=self.signup("p@gmail.com","qwertyuiop","qwertyuiop");
-        self.assertEqual(response.status_code, 400)
-        assert b'you have signed up in succesfully' in response.data;
-
-    def test_signup_fail(self):
-        response=self.signup("p@gmail.com","qwertyuiop","qwertyuiop");
-        self.assertEqual(response.status_code, 500)
-        assert b'Something went wrong' in response.data;    
-
-    def test_signup_existing_email(self):
-        response=self.signup("p@gmail.com","qwertyuiop","qwertyuiop");
-        self.assertEqual(response.status_code, 409)
-        assert b'This account exists' in response.data
-        
-    
+   
      
 
     def signup(self,email,password1,password2):
