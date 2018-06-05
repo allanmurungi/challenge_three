@@ -16,6 +16,7 @@ Getting Started
 
 
 Clone the repo https://github.com/allanmurungi/challenge_three
+
 Prerequisites
 
 You will need the following.
