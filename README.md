@@ -15,7 +15,8 @@ Features:
 Getting Started
 
 
-Clone the repo https://github.com/allanmurungi/maintenance_tracker_app.git
+Clone the repo https://github.com/allanmurungi/challenge_three
+
 Prerequisites
 
 You will need the following.
