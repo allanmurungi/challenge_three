@@ -16,6 +16,8 @@ Getting Started
 
 
 Clone the repo https://github.com/allanmurungi/maintenance_tracker_app.git
+
+
 Prerequisites
 
 You will need the following.
