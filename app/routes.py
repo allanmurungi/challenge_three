@@ -238,7 +238,7 @@ class createrequest(Resource):
         req_title=data['req_title']
         req_details=data['req_details']
         req_owner=data['req_owner']
-        req_status=data['req_staus']
+        req_status=data['req_status']
 
         #validate each entry
         if(UserModel.validate_req(req_title) != True):

@@ -37,48 +37,92 @@ class DbCalls:
 
     def get_user_requests(self,email):
         """This function users the cursor object to get a user's requests from the requests table"""
-        pass
+        self.cur.execute("SELECT * FROM requests where req_owner=%s",(email))
+        result=""
+        while True:
+      
+            row = self.cur.fetchone()
+            
+            
+            
+        return result   
 
     def get_all_requests(self):
         """ This function uses the cursor object to get all requests onnthe application 
-        from the requests' table  """   
-        pass 
+        from the requests' table  """
+        self.cur.execute("SELECT * FROM requests")   
+        while True:
+      
+            row = self.cur.fetchone()
+        
+            if row == None:
+                break
+            
+        #print row[0], row[1], row[2]
+ 
 
 
     def get_request(self,req_id):
         """This function uses the cursor object to get a specific request using its id from the
          requests table """
-        pass
+        self.cur.execute("SELECT * FROM requests where id=%s",(req_id))
+        result=""
+        
+        while True:
+      
+            row = self.cur.fetchone()
+            result={"req_title":row[1], "req_details":row[2], "req_owner":row[3], "req_status":row[4]}
+            if row == None:
+                result="request not found"
+                return result
+            
+            break
+        return result    
+        
 
     def add_request(self,req_title,req_details,req_owner,req_status):
         """ This function uses the cursor object to add a new request/row to the requests table """
         self.cur.execute("INSERT INTO requests (req_title,req_details,req_owner,req_status) VALUES (%s, %s,%s,%s)",(req_title,req_details,req_owner,req_status))
         self.con.commit()
         return True
-        pass
+       
     def delete_request(self,req_id):
         """ This function uses the cursor object to delete request/row from the requests table 
         given its id """
         pass
 
-    def edit_request(self,req_title,req_details,req_owner,req_status):
+    def edit_request(self,req_title,req_details,req_owner,req_status,req_id):
         """ This function uses the cursor object to edit/modify a request/row in the requests table """
-        pass
+        
+        self.cur.execute("UPDATE requests SET req_title=%s req_details=%s req_owner=%s req_status=%s WHERE req_id=%s",
+         (req_title, req_details,req_owner,req_status,req_id))        
+        self.con.commit()
+        
 
     def approve_request(self,req_id):
+       
         """ This function uses the cursor object to approve request/row in the requests table given 
         its id """
-        pass
+        req_status="approved"
+        self.cur.execute("UPDATE requests SET  req_status=%s WHERE req_id=%s",
+         (req_status,req_id))        
+        self.con.commit()
 
     def resolve_request(self,req_id):
         """ This function uses the cursor object to resolve a request/row in the requests table given 
         its id """
-        pass
+        req_status="resolved"
+        self.cur.execute("UPDATE requests SET  req_status=%s WHERE req_id=%s",
+         (req_status,req_id))        
+        self.con.commit()
     
     def disapprove_request(self,req_id):
         """ This function uses the cursor object to disapprove request/row in the requests table given 
         its id """
-        pass
+        req_status="disapprove"
+        self.cur.execute("UPDATE requests SET  req_status=%s WHERE req_id=%s",
+         (req_status,req_id))        
+        self.con.commit()
     
     def kill_connection(self):
         """ This function kills or ends the connection to the database server """

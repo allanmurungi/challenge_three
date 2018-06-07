@@ -22,7 +22,6 @@ class BasicTests(unittest.TestCase):
         self.app = app.test_client()
         
         self.assertEqual(app.debug, False)
-
     def test_signup_empty_params(self):
         """ a test function/unit for a missing signup details """
 
@@ -37,7 +36,7 @@ class BasicTests(unittest.TestCase):
         response=self.signup("p@gmail.com","")
         data=json.loads(response.data.decode('utf-8'))
         self.assertEqual(response.status_code, 400)
-        assert b'second password missing' in data['message']
+        self.assertEqual('second password missing' , data['message'])
 
         
     def test_signup_missing_email(self):
@@ -45,7 +44,7 @@ class BasicTests(unittest.TestCase):
         response=self.signup("","qwertyuiop")
         data=json.loads(response.data.decode('utf-8'))
         self.assertEqual(response.status_code, 400)
-        assert b'email address not given' in data['message']
+        self.assertEqual('email address not given' , data['message'])
 
 
     def test_signup_invalid_email(self):
@@ -54,15 +53,15 @@ class BasicTests(unittest.TestCase):
         response=self.signup("Xddfvfv","qwertyuiop")
         data=json.loads(response.data.decode('utf-8'))
         self.assertEqual(response.status_code, 400)
-        assert b'The email address provided is invalid' in data['message'] 
-
+        self.assertEquals('The email address provided is invalid' , data['message']) 
+    
     def test_signup_short_password(self):
         """ a test function/unit for an invalid email address """
 
         response=self.signup("a@gmail.com","qwer")
         data=json.loads(response.data.decode('utf-8'))
         self.assertEqual(response.status_code, 400)
-        assert b'The password is too short' in data['message'] 
+        self.assertEqual('The password is too short', data[1]) 
      
     def signup(self,email,password):
         return self.app.post('/signup',data=dict(email=email,password1=password),follow_redirects=True);
