@@ -23,6 +23,7 @@ class BasicTests(unittest.TestCase):
         self.assertEqual(app.debug, False)
 
     def test_login_missing_email(self):
+
         """a test for the login end point"""
 
         response=self.login("","qwertyuiop")
@@ -43,7 +44,7 @@ class BasicTests(unittest.TestCase):
     def test_login_invalid_email(self):
         """ a test function/unit for an invalid email address """
         
-        response=self.login("Xddfvfv","qwertyuiop");
+        response=self.login("Xddfvfv","qwertyuiop")
     
         data=json.loads(response.data.decode('utf-8'))
         
@@ -52,9 +53,10 @@ class BasicTests(unittest.TestCase):
     
 
         
+
     def login(self,email,password):
         return self.app.post('/login',data=dict(email=email,password1=password),follow_redirects=True);
-            
+
 
 
     

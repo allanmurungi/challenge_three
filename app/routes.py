@@ -12,6 +12,7 @@ parser = reqparse.RequestParser()
 parser.add_argument('email', help = 'This field cannot be blank', required = True)
 parser.add_argument('password1', help = 'This field cannot be blank', required = True)
 
+
 Request_parser = reqparse.RequestParser()
 Request_parser.add_argument('req_title', help = 'This field cannot be blank', required = True)
 Request_parser.add_argument('req_details', help = 'This field cannot be blank', required = True)
@@ -47,9 +48,9 @@ class myrequest:
 
 class myIndex(Resource):
     def get(self):
-        return jsonify({'message': 'maintenance tracker endpoints!'});
+        return  'maintenance tracker endpoints!';
     def post(self):
-        return jsonify({'message': 'maintenance tracker endpoints post!'});
+        return  'maintenance tracker endpoints post!';
 
 
 class login(Resource):
@@ -57,6 +58,7 @@ class login(Resource):
         """ a  function for logging in a user given a provided email and password """
 
         data = parser.parse_args()
+
         
         if(UserModel.validate_login(data['email'],data['password1']) != True):
             return  json.dumps(UserModel.validate_login(data['email'],data['password1'])),400
@@ -70,24 +72,21 @@ class login(Resource):
         refresh_token = create_refresh_token(identity = data['email'])
             
         if(con_status==True):
-
             
 
             return json.dumps({
-        'message': 'you have logged in succesfully',
-        'access_token':'',
-        'refresh_token':''
+            'message': 'you have logged in succesfully',
+            'access_token':'',
+            'refresh_token':''})
         
-        }),200 
         else:
-            return  json.dumps({'message': 'you have failed to connect'}),500  
-        
-        return json.dumps({'message': 'Wrong credentials'}), 401
+            pass
 
 
 class signup(Resource):
 
     def post(self):
+
         """ a  function for creating a user given a provided email and password """
 
         data = parser.parse_args()
@@ -131,7 +130,9 @@ class signup_admin(Resource):
         data = parser.parse_args()
         if(UserModel.validate_signup(data['email'],data['password1']) != True):
             return  json.dumps(UserModel.validate_login(data['email'],data['password1'])),400
+    
         
+
         
         try:
             dbcall=DbCalls()
@@ -139,6 +140,7 @@ class signup_admin(Resource):
             
             access_token = create_access_token(identity = data['email'])
             refresh_token = create_refresh_token(identity = data['email'])
+
             
             #get the email address and hash the password
             email=data['email']
@@ -162,8 +164,6 @@ class signup_admin(Resource):
             return json.dumps({'message': 'Something went wrong'}), 500
 
 
-
-
 class TokenRefresh(Resource):
     @jwt_refresh_token_required
     def post(self):
@@ -182,6 +182,7 @@ class logout(Resource):
         try:
             revoked_token = RevokedTokenModel(jti = jti)
             revoked_token.add()
+
             return json.dumps({'message': 'Access token has been revoked'}),200
         except:
             return json.dumps({'message': 'Something went wrong'}), 500
@@ -196,9 +197,11 @@ class UserLogoutRefresh(Resource):
         try:
             revoked_token = RevokedTokenModel(jti = jti)
             revoked_token.add()
+
             return json.dumps({'message': 'Refresh token has been revoked'})
         except:
             return json.dumps({'message': 'Something went wrong'}), 500
+
         
 class getrequests(Resource):
 
