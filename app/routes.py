@@ -1,14 +1,24 @@
 from app import app
-from flask import jsonify
+from app.DbHelper import DbCalls
+from flask import jsonify,json
 from flask_restful import Resource, Api, reqparse
-from app.models import UserModel
+from app.models import UserModel,RevokedTokenModel
 from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
 import random
+
 
 
 parser = reqparse.RequestParser()
 parser.add_argument('email', help = 'This field cannot be blank', required = True)
 parser.add_argument('password1', help = 'This field cannot be blank', required = True)
+
+Request_parser = reqparse.RequestParser()
+Request_parser.add_argument('req_title', help = 'This field cannot be blank', required = True)
+Request_parser.add_argument('req_details', help = 'This field cannot be blank', required = True)
+Request_parser.add_argument('req_owner', help = 'This field cannot be blank', required = True)
+Request_parser.add_argument('req_status', help = 'This field cannot be blank', required = True)
+
+
 
 api = Api(app)
 
@@ -20,12 +30,10 @@ class myrequest:
         """ the constructor"""
         self.title=req_title
         self.details=req_details
-        self.req_id=random.randint(1,1000000)
         self.req_owner=req_owner
+        self.req_status="null"
      
-    def getId(self):
-        return self.req_id
-
+    
     def getreqtitle(self):
         return self.title
 
@@ -46,75 +54,121 @@ class myIndex(Resource):
 
 class login(Resource):
     def post(self):
+        """ a  function for logging in a user given a provided email and password """
+
         data = parser.parse_args()
-        #current_user = UserModel.find_by_email(data['email']) // call model function to check for his existence
-        if(data['email']==""):
-            return jsonify({'message':'no username/email entered'}),400
-            
-        elif(data['password']==""):
-            return jsonify({'message':'no password given'}),400
-            
-        elif(data['email']=="" and data['email']=="" ):
-            return jsonify({'message':'you have not entered email and password'}),400
-            
-        #if not current_user:
-            #return {'message': 'User doesn\'t exist'}
         
-        #if UserModel.verify_hash(data['password'], current_user.password):
-           # access_token = create_access_token(identity = data['email'])
-           # refresh_token = create_refresh_token(identity = data['email'])
-        try:
-            #new_user.save_to_db()
-            access_token = create_access_token(identity = data['email'])
-            refresh_token = create_refresh_token(identity = data['email'])
-            #return {
-                #'message': 'User {} was created'.format(data['email']),
-                #'access_token': access_token,
-                #'refresh_token': refresh_token
-               # },201
-            return jsonify({'message': 'you have logged in succesfully'}),200    
-        except:
-            return jsonify({'message': 'Wrong credentials'}), 401
+        if(UserModel.validate_login(data['email'],data['password1']) != True):
+            return  json.dumps(UserModel.validate_login(data['email'],data['password1'])),400
+           
+        
+        
+        dbcall=DbCalls()
+        con_status=dbcall.connect_to_db()
+            
+        access_token = create_access_token(identity = data['email'])
+        refresh_token = create_refresh_token(identity = data['email'])
+            
+        if(con_status==True):
+
+            
+
+            return json.dumps({
+        'message': 'you have logged in succesfully',
+        'access_token':'',
+        'refresh_token':''
+        
+        }),200 
+        else:
+            return  json.dumps({'message': 'you have failed to connect'}),500  
+        
+        return json.dumps({'message': 'Wrong credentials'}), 401
 
 
 class signup(Resource):
 
     def post(self):
+        """ a  function for creating a user given a provided email and password """
+
         data = parser.parse_args()
-        if(data['email']=="" and data['password1']!="" and data['password2']!=""):
-            return jsonify({"message":"email address not given"}),400
+        if(UserModel.validate_signup(data['email'],data['password1']) != True):
+            return  json.dumps(UserModel.validate_login(data['email'],data['password1'])),400
         
-        elif(data['email']=="" and data['password1']=="" and data['password2']==""):
-            return jsonify({"you have not entered any details"}),400
         
-        elif(data['email']!="" and data['password1']=="" and data['password2']!=""):
-            return jsonify({"message":"password missing"}),400
         
-        elif(data['email']!="" and data['password1']!="" and data['password2']==""):
-            return jsonify({"message":"second password missing"}),400
+        dbcall=DbCalls()
+        con_status=dbcall.connect_to_db()
+            
+        access_token = create_access_token(identity = data['email'])
+        refresh_token = create_refresh_token(identity = data['email'])
+            
+        #get the email address and hash the password
+        email=data['email']
+        password=UserModel.generate_hash(data['password1'])
+
+        #get user by username and return the user
+        #verify hashed password using UserModel.verify_hash(data['password'], password_from_database
+        if(con_status==True):
+
+            dbcall.create_new_user(email,password,'user')
+            dbcall.kill_connection()
+
+            return json.dumps({
+                    'message': 'you have signed up in succesfully',
+                    'access_token':'',
+                    'refresh_token':''
+                }),201
+        else:
+            return json.dumps({'message': 'Something went wrong'}), 500    
         
-        #if UserModel.find_by_email(data['email']):
-            #return {'message': 'User already exists'},409
-        #new_user = UserModel(
-            #email = data['email'],
-            #password = UserModel.generate_hash(data['password'])
-        #)
+        return json.dumps({'message': 'Something went wrong'}), 500
+
+class signup_admin(Resource):
+
+    def post(self):
+        """ a  function for creating a user given a provided email and password """
+
+        data = parser.parse_args()
+        if(UserModel.validate_signup(data['email'],data['password1']) != True):
+            return  json.dumps(UserModel.validate_login(data['email'],data['password1'])),400
+        
+        
         try:
-            #new_user.save_to_db()
+            dbcall=DbCalls()
+            con_status=dbcall.connect_to_db()
+            
             access_token = create_access_token(identity = data['email'])
             refresh_token = create_refresh_token(identity = data['email'])
-            #return {
-                #'message': 'User {} was created'.format(data['email']),
-                #'access_token': access_token,
-                #'refresh_token': refresh_token
-               # },201
-            return jsonify({'message': 'you have signed up in succesfully'}),201    
+            
+            #get the email address and hash the password
+            email=data['email']
+            password=UserModel.generate_hash(data['password1'])
+
+            #get user by username and return the user
+            #verify hashed password using UserModel.verify_hash(data['password'], password_from_database
+            if(con_status==True):
+
+                dbcall.create_new_user(email,password,'admin')
+                dbcall.kill_connection()
+
+                return json.dumps({
+                    'message': 'you have signed up in succesfully',
+                    'access_token':'',
+                    'refresh_token':''
+                }),201
+            else:
+                return json.dumps({'message': 'Something went wrong'}), 500    
         except:
-            return jsonify({'message': 'Something went wrong'}), 500
+            return json.dumps({'message': 'Something went wrong'}), 500
+
+
+
 
 class TokenRefresh(Resource):
     @jwt_refresh_token_required
     def post(self):
+        """ a  function for refreshing token"""
+
         current_user = get_jwt_identity()
         access_token = create_access_token(identity = current_user)
         return {'access_token': access_token}
@@ -122,15 +176,17 @@ class TokenRefresh(Resource):
 class logout(Resource):
     @jwt_required
     def post(self):
+        """ a  function for logging out a user  """
+
         jti = get_raw_jwt()['jti']
         try:
             revoked_token = RevokedTokenModel(jti = jti)
             revoked_token.add()
-            return jsonify({'message': 'Access token has been revoked'}),200
+            return json.dumps({'message': 'Access token has been revoked'}),200
         except:
-            return jsonify({'message': 'Something went wrong'}), 500
+            return json.dumps({'message': 'Something went wrong'}), 500
 
-    def get():
+    def get(self):
         pass
 
 class UserLogoutRefresh(Resource):
@@ -140,19 +196,21 @@ class UserLogoutRefresh(Resource):
         try:
             revoked_token = RevokedTokenModel(jti = jti)
             revoked_token.add()
-            return jsonify({'message': 'Refresh token has been revoked'})
+            return json.dumps({'message': 'Refresh token has been revoked'})
         except:
-            return jsonify({'message': 'Something went wrong'}), 500
+            return json.dumps({'message': 'Something went wrong'}), 500
         
 class getrequests(Resource):
 
     def get(self):
+        """ a  function for getting requests for a user """
         
         pass
     
 class getrequest(Resource):
 
     def get(self,req_id):
+        """ a  function for getting a specific request """
         
         
         pass
@@ -160,43 +218,80 @@ class getrequest(Resource):
 class editrequest(Resource):
 
     def editrequest(self):
+        """ a  function for editing/modifying a specific request """
         pass
 
 class deleterequest(Resource):
 
     def get(self,req_id):
+        """ a  function for deleting a specific request """
         pass
         
 
 class createrequest(Resource):
 
     def post(self):
-        pass
+        """ a  function for creating a new request """
 
+        #get parsed data
+        data = Request_parser.parse_args()
+        req_title=data['req_title']
+        req_details=data['req_details']
+        req_owner=data['req_owner']
+        req_status=data['req_staus']
+
+        #validate each entry
+        if(UserModel.validate_req(req_title) != True):
+            return  json.dumps(UserModel.validate_req(req_title)),400
+        elif(UserModel.validate_req(req_details) != True):
+            return  json.dumps(UserModel.validate_req(req_details)),400
+        elif(UserModel.validate_req(req_owner) != True):
+            return  json.dumps(UserModel.validate_req(req_owner)),400
+        elif(UserModel.validate_req(req_status) != True):
+            return  json.dumps(UserModel.validate_req(req_status)),400 
+
+        dbcall=DbCalls()
+        con_status=dbcall.connect_to_db()
+            
+        #get user by username and return the user
+        #verify hashed password using UserModel.verify_hash(data['password'], password_from_database
+        if(con_status==True):
+
+            dbcall.add_request(req_title,req_details,req_owner,req_status)
+            dbcall.kill_connection()
+
+            return json.dumps({
+                    'message': 'request successfully added',
+                }),201   
 class resolveRequest(Resource):
 
     def post(self,req_id):
+        """ a  function for resolving a specific request """
         pass
                 
 class approveRequest(Resource):
 
     def post(self,req_id):
+        """ a  function for approving a specific request """
         pass
 
 class disapproveRequest(Resource):
 
     def post(self,req_id):
+        """ a  function for disapproving a specific request """
         pass
 
 class getAllRequests(Resource):
 
     def get(self):
+        """ a  function for getting all requests on the application """
         pass
                 
 
 api.add_resource(myIndex, '/')        
 api.add_resource(login, '/login')
 api.add_resource(signup, '/signup')
+api.add_resource(signup_admin, '/signup_admin')
 api.add_resource(logout, '/logout')
 api.add_resource(createrequest, '/createrequest')
 api.add_resource(getrequest, '/getrequest/<string:req_id>')

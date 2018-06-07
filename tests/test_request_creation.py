@@ -22,38 +22,32 @@ class BasicTests(unittest.TestCase):
         
         self.assertEqual(app.debug, False)
 
-    def test_login_missing_email(self):
-        """a test for the login end point"""
-
-        response=self.login("","qwertyuiop")
-        data=json.loads(response.data.decode('utf-8'))
-        self.assertEqual(response.status_code, 400)
-        assert b'no username or email entered' in data['message'] 
-        
-        
+    
     def test_login_missing_password(self):
-        """a test for the login end point"""
+        """a test for the endpoint for creating a request, this tests for missing entries input"""
 
-        response=self.login("p@gmail.com","")
+        response=self.addrequest("water flow","","a@gmail.com","null")
         data=json.loads(response.data.decode('utf-8'))
         self.assertEqual(response.status_code, 400)
-        assert b'no password given' in data['message']     
+        assert b'Missing entry' in data['message']     
 
-        
-    def test_login_invalid_email(self):
-        """ a test function/unit for an invalid email address """
-        
-        response=self.login("Xddfvfv","qwertyuiop");
-    
+        response=self.addrequest("","The water flow in the evening is terrible","a@gmail.com","null")
         data=json.loads(response.data.decode('utf-8'))
-        
         self.assertEqual(response.status_code, 400)
-        assert b'The email address provided is invalid' in data['message'] 
-    
-
+        assert b'Missing entry' in data['message'] 
         
-    def login(self,email,password):
-        return self.app.post('/login',data=dict(email=email,password1=password),follow_redirects=True);
+        response=self.addrequest("water flow","The water flow in the evening is terrible","","null")
+        data=json.loads(response.data.decode('utf-8'))
+        self.assertEqual(response.status_code, 400)
+        assert b'Missing entry' in data['message'] 
+    
+        response=self.addrequest("water flow","The water flow in the evening is terrible","a@gmail.com","")
+        data=json.loads(response.data.decode('utf-8'))
+        self.assertEqual(response.status_code, 400)
+        assert b'Missing entry' in data['message']
+        
+    def addrequest(self,req_title,req_details,req_owner,req_status):
+        return self.app.post('/createrequest',data=dict(req_title=req_title,req_details=req_details,req_owner=req_owner,req_status=req_status),follow_redirects=True);
             
 
 

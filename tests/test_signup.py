@@ -1,5 +1,6 @@
 import os
 import unittest
+from flask import json
  
 from app import app
  
@@ -23,45 +24,48 @@ class BasicTests(unittest.TestCase):
         self.assertEqual(app.debug, False)
 
     def test_signup_empty_params(self):
-        response=self.sign_up("","","");
+        """ a test function/unit for a missing signup details """
+
+        response=self.signup("","")
+        data=json.loads(response.data.decode('utf-8'))
         self.assertEqual(response.status_code, 400)
-        assert b'you have not entered any details' in response.data
+        assert b'you have not entered any details' in data['message']
         
     def test_signup_missing_password1(self):
-        response=self.sgnup("p@gmail.com","qwertyuiop","");
-        self.assertEqual(response.status_code, 400)
-        assert b'second password missing' in response.data
+        """ a test function/unit for a missing password  """
 
-    def test_sgnup_missing_password2(self):
-        response=self.signup("p@gmail.com","","qwertyuiop");
+        response=self.signup("p@gmail.com","")
+        data=json.loads(response.data.decode('utf-8'))
         self.assertEqual(response.status_code, 400)
-        assert b' password missing' in response.data
+        assert b'second password missing' in data['message']
+
         
     def test_signup_missing_email(self):
-        response=self.signup("","qwertyuiop","qwertyuiop");
+        """ a test function/unit for a missing email address """
+        response=self.signup("","qwertyuiop")
+        data=json.loads(response.data.decode('utf-8'))
         self.assertEqual(response.status_code, 400)
-        assert b'email address not given' in response.data
-        
-    def test_succesful_signup(self):
-        response=self.signup("p@gmail.com","qwertyuiop","qwertyuiop");
+        assert b'email address not given' in data['message']
+
+
+    def test_signup_invalid_email(self):
+        """ a test function/unit for an invalid email address """
+
+        response=self.signup("Xddfvfv","qwertyuiop")
+        data=json.loads(response.data.decode('utf-8'))
         self.assertEqual(response.status_code, 400)
-        assert b'you have signed up in succesfully' in response.data;
+        assert b'The email address provided is invalid' in data['message'] 
 
-    def test_signup_fail(self):
-        response=self.signup("p@gmail.com","qwertyuiop","qwertyuiop");
-        self.assertEqual(response.status_code, 500)
-        assert b'Something went wrong' in response.data;    
+    def test_signup_short_password(self):
+        """ a test function/unit for an invalid email address """
 
-    def test_signup_existing_email(self):
-        response=self.signup("p@gmail.com","qwertyuiop","qwertyuiop");
-        self.assertEqual(response.status_code, 409)
-        assert b'This account exists' in response.data
-        
-    
+        response=self.signup("a@gmail.com","qwer")
+        data=json.loads(response.data.decode('utf-8'))
+        self.assertEqual(response.status_code, 400)
+        assert b'The password is too short' in data['message'] 
      
-
-    def signup(self,email,password1,password2):
-        return self.app.post('/signup',data=dict(email=email,password1=password1,password2=password2),follow_redirects=True);
+    def signup(self,email,password):
+        return self.app.post('/signup',data=dict(email=email,password1=password),follow_redirects=True);
 
     #### tear down  ####    
     # executed after each test
