@@ -39,9 +39,15 @@ class DbCalls:
         """This function users the cursor object to get a user's requests from the requests table"""
         self.cur.execute("SELECT * FROM requests where req_owner=%s",(email))
         result=""
+        reqs=[]  
         while True:
       
             row = self.cur.fetchone()
+        
+            if row == None:
+                break
+            reqs.append({"req_title":row[1], "req_details":row[2], "req_owner":row[3], "req_status":row[4]})
+        return reqs
             
             
             
@@ -50,15 +56,16 @@ class DbCalls:
     def get_all_requests(self):
         """ This function uses the cursor object to get all requests onnthe application 
         from the requests' table  """
-        self.cur.execute("SELECT * FROM requests")   
+        self.cur.execute("SELECT * FROM requests") 
+        reqs=[]  
         while True:
       
             row = self.cur.fetchone()
         
             if row == None:
                 break
-            
-        #print row[0], row[1], row[2]
+            reqs.append({"req_title":row[1], "req_details":row[2], "req_owner":row[3], "req_status":row[4]})
+        return reqs
  
 
 
@@ -89,7 +96,8 @@ class DbCalls:
     def delete_request(self,req_id):
         """ This function uses the cursor object to delete request/row from the requests table 
         given its id """
-        pass
+        self.cur.execute("delete FROM requests where id=%s",(req_id))
+        self.con.commit()
 
     def edit_request(self,req_title,req_details,req_owner,req_status,req_id):
         """ This function uses the cursor object to edit/modify a request/row in the requests table """
