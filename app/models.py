@@ -28,6 +28,7 @@ class UserModel:
         elif(email == "" and password == ""):
             return {'message': 'you have not entered email and password'}
         elif(not re.match(r"[^@]+@[^@]+\.[^@]+", email)):
+            #regular expression from stackoverflow
             return {'message': 'The email address provided is invalid'}
         else:
             return True
@@ -45,6 +46,7 @@ class UserModel:
         elif(email == "" and password == ""):
             return {'message': 'you have not entered email and password'}, 400
         elif(not re.match(r"[^@]+@[^@]+\.[^@]+", email)):
+            #regular expression from stackoverflow
             return {'message': 'The email address provided is invalid'}
         elif(len(password) < 6):
             return {'message': 'The password is too short'}
@@ -60,6 +62,7 @@ class UserModel:
     def validate_email(email):
         """ a  function for validating a request entry """
         if(not re.match(r"[^@]+@[^@]+\.[^@]+", email)):
+            #regular expression from stackoverflow
             return {'message': 'The email address provided is invalid'}
         else:
             return True 
@@ -71,6 +74,7 @@ class UserModel:
         if(entry == ""):
             return {'message': 'Missing entry'}
         if(re.match("^[a-zA-Z0-9_.-]+$", entry)):
+            #regular expression from stackoverflow
             pass
         else:
             return {'message': 'unacceptable characters in entry'}

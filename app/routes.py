@@ -358,6 +358,7 @@ class getAllRequests(Resource):
 
 
 api.add_resource(myIndex, '/')
+api.add_resource(TokenRefresh, '/tokenrefresh')
 api.add_resource(login, '/login')
 api.add_resource(signup, '/signup')
 api.add_resource(signup_admin, '/signup_admin')
