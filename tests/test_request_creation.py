@@ -21,31 +21,31 @@ class BasicTests(unittest.TestCase):
 
         self.assertEqual(app.debug, False)
 
-    def test_login_missing_password(self):
+    def test_missing_entry(self):
         """a test for the endpoint for creating a request, this tests for missing entries input"""
 
         response = self.addrequest("water flow", "", "a@gmail.com", "null")
         data = json.loads(response.data.decode('utf-8'))
-        self.assertEqual(response.status_code, 400)
-        assert b'Missing entry' in data['message']
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual('Missing entry', data['message'])
 
         response = self.addrequest(
             "", "The water flow in the evening is terrible", "a@gmail.com", "null")
         data = json.loads(response.data.decode('utf-8'))
         self.assertEqual(response.status_code, 400)
-        assert b'Missing entry' in data['message']
+        self.assertEqual('Missing entry', data['message'])
 
         response = self.addrequest(
             "water flow", "The water flow in the evening is terrible", "", "null")
         data = json.loads(response.data.decode('utf-8'))
         self.assertEqual(response.status_code, 400)
-        assert b'Missing entry' in data['message']
+        self.assertEqual('Missing entry', data['message'])
 
         response = self.addrequest(
             "water flow", "The water flow in the evening is terrible", "a@gmail.com", "")
         data = json.loads(response.data.decode('utf-8'))
         self.assertEqual(response.status_code, 400)
-        assert b'Missing entry' in data['message']
+        self.assertEqual('Missing entry', data['message'])
 
     def addrequest(self, req_title, req_details, req_owner, req_status):
         return self.app.post('/createrequest', data=dict(req_title=req_title, req_details=req_details, req_owner=req_owner, req_status=req_status), follow_redirects=True)

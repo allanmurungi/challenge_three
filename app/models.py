@@ -55,14 +55,27 @@ class UserModel:
     def validate_create_request(entry):
         """ a  function for validating a request entry """
         pass
+    
+    @staticmethod
+    def validate_email(email):
+        """ a  function for validating a request entry """
+        if(not re.match(r"[^@]+@[^@]+\.[^@]+", email)):
+            return {'message': 'The email address provided is invalid'}
+        else:
+            return True 
 
     @staticmethod
     def validate_req(entry):
         """ a  function for validating a request entry """
+        entry = "request"
         if(entry == ""):
             return {'message': 'Missing entry'}
+        if(re.match("^[a-zA-Z0-9_.-]+$", entry)):
+            pass
         else:
-            return True
+            return {'message': 'unacceptable characters in entry'}
+        
+        return True
 
 
 class RevokedTokenModel:

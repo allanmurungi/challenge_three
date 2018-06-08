@@ -64,7 +64,7 @@ class login(Resource):
         data = parser.parse_args()
 
         if(UserModel.validate_login(data['email'], data['password1']) is not True):
-            return json.dumps(UserModel.validate_login(data['email'], data['password1'])), 400
+            return UserModel.validate_login(data['email'], data['password1']), 400
 
         dbcall = DbCalls()
         con_status = dbcall.connect_to_db()
@@ -73,17 +73,17 @@ class login(Resource):
 
         if(con_status is True):
 
-            result = dbcall.log_in_user(data['email'], data['password'])
+            result = dbcall.log_in_user(data['email'], data['password1'])
 
-            if UserModel.verify_hash(data['password'], result['password']):
-                return json.dumps({
+            if UserModel.verify_hash(data['password1'], result[1]):
+                return {
                     'message': 'you have logged in succesfully', 
                     'access_token': '', 
-                    'refresh_token': ''})
+                    'refresh_token': ''}
             else:
-                return json.dumps({"message": "wrong credentials"}), 401    
+                return {"message": "wrong credentials"}, 401    
         else:
-            return json.dumps({"message": "wrong credentials"}), 401
+            return {"message": "wrong credentials"}, 401
 
 
 class signup(Resource):
@@ -93,10 +93,11 @@ class signup(Resource):
 
         data = parser.parse_args()
         if(UserModel.validate_signup(data['email'], data['password1']) is not True):
-            return json.dumps(UserModel.validate_login(data['email'], data['password1'])), 400
+            return UserModel.validate_signup(data['email'], data['password1']), 400
 
         dbcall = DbCalls()
         con_status = dbcall.connect_to_db()
+        user_exists = dbcall.check_existing_user(data['email'])
 
         access_token = create_access_token(identity=data['email'])
         refresh_token = create_refresh_token(identity=data['email'])
@@ -107,20 +108,20 @@ class signup(Resource):
 
         # get user by username and return the user
         # verify hashed password , password_from_database
-        if(con_status is True):
+        if(con_status is True and user_exists is False):
 
             dbcall.create_new_user(email, password, 'user')
             dbcall.kill_connection()
 
-            return json.dumps({
+            return {
                 'message': 'you have signed up in succesfully',
-                'access_token': '',
-                'refresh_token': ''
-            }), 201
+                'access_token': access_token,
+                'refresh_token': refresh_token
+            }, 201
         else:
-            return json.dumps({'message': 'Something went wrong'}), 400
+            return {'message': 'user exists'}, 400
 
-        return json.dumps({'message': 'Something went wrong'}), 400
+        return {'message': 'Something went wrong'}, 400
 
 
 class signup_admin(Resource):
@@ -129,12 +130,13 @@ class signup_admin(Resource):
         """ a  function for creating a user given a provided email and password """
 
         data = parser.parse_args()
-        if(UserModel.validate_signup(data['email'], vdata['password1']) is not True):
-            return json.dumps(UserModel.validate_login(data['email'], data['password1'])), 400
+        if(UserModel.validate_signup(data['email'], data['password1']) is not True):
+            return UserModel.validate_signup(data['email'], data['password1']), 400
 
         try:
             dbcall = DbCalls()
             con_status = dbcall.connect_to_db()
+            user_exists = dbcall.check_existing_user(data['email'])
 
             access_token = create_access_token(identity=data['email'])
             refresh_token = create_refresh_token(identity=data['email'])
@@ -145,20 +147,20 @@ class signup_admin(Resource):
 
             # get user by username and return the user
             # verify hashed password using UserModel.verify_hash(data['password'], password_from_database
-            if(con_status is True):
+            if(con_status is True and user_exists is False):
 
                 dbcall.create_new_user(email, password, 'admin')
                 dbcall.kill_connection()
 
-                return json.dumps({
+                return {
                     'message': 'you have signed up in succesfully',
-                    'access_token': '',
-                    'refresh_token': ''
-                }), 201
+                    'access_token': access_token,
+                    'refresh_token': refresh_token
+                }, 201
             else:
-                return json.dumps({'message': 'Something went wrong'}), 500
+                return {'message': 'Something went wrong'}, 500
         except:
-            return json.dumps({'message': 'Something went wrong'}), 500
+            return {'message': 'Something went wrong'}, 500
 
 
 class TokenRefresh(Resource):
@@ -181,9 +183,9 @@ class logout(Resource):
             revoked_token = RevokedTokenModel(jti=jti)
             revoked_token.add()
 
-            return json.dumps({'message': 'Access token has been revoked'}), 200
+            return {'message': 'Access token has been revoked'}, 200
         except:
-            return json.dumps({'message': 'Something went wrong'}), 500
+            return {'message': 'Something went wrong'}, 500
 
     def get(self):
         pass
@@ -197,9 +199,9 @@ class UserLogoutRefresh(Resource):
             revoked_token = RevokedTokenModel(jti=jti)
             revoked_token.add()
 
-            return json.dumps({'message': 'Refresh token has been revoked'})
+            return {'message': 'Refresh token has been revoked'}
         except:
-            return json.dumps({'message': 'Something went wrong'}), 500
+            return {'message': 'Something went wrong'}, 500
 
 
 class getrequests(Resource):
@@ -210,8 +212,9 @@ class getrequests(Resource):
         dbcall = DbCalls()
         con_status = dbcall.connect_to_db()
 
-        if(con_status == True):
+        if(con_status is True):
             result = dbcall.get_user_requests(email)
+            return result, 200
 
 
 class getrequest(Resource):
@@ -224,6 +227,7 @@ class getrequest(Resource):
 
         if(con_status == True):
             result = dbcall.get_request(req_id)
+            return result, 200
 
 
 class editrequest(Resource):
@@ -246,6 +250,7 @@ class editrequest(Resource):
                 req_title, req_details, req_owner, req_status, req_id)
 
         dbcall.kill_connection()
+        return {"message":"request edited successfully"}, 200
 
 
 class deleterequest(Resource):
@@ -259,6 +264,7 @@ class deleterequest(Resource):
             result = dbcall.delete_request(req_id)
 
         dbcall.kill_connection()
+        return {"message":"request deleted successfully"}, 200
 
 
 class createrequest(Resource):
@@ -274,14 +280,14 @@ class createrequest(Resource):
         req_status = data['req_status']
 
         # validate each entry
-        if(UserModel.validate_req(req_title) != True):
-            return json.dumps(UserModel.validate_req(req_title)), 400
-        elif(UserModel.validate_req(req_details) != True):
-            return json.dumps(UserModel.validate_req(req_details)), 400
-        elif(UserModel.validate_req(req_owner) != True):
-            return json.dumps(UserModel.validate_req(req_owner)), 400
-        elif(UserModel.validate_req(req_status) != True):
-            return json.dumps(UserModel.validate_req(req_status)), 400
+        if(UserModel.validate_req(req_title) is not True):
+            return UserModel.validate_req(req_title), 400
+        elif(UserModel.validate_req(req_details) is not True):
+            return UserModel.validate_req(req_details), 400
+        elif(UserModel.validate_email(req_owner) is not True):
+            return UserModel.validate_req(req_owner), 400
+        elif(UserModel.validate_req(req_status) is not True):
+            return UserModel.validate_req(req_status), 400
 
         dbcall = DbCalls()
         con_status = dbcall.connect_to_db()
@@ -293,14 +299,14 @@ class createrequest(Resource):
             dbcall.add_request(req_title, req_details, req_owner, req_status)
             dbcall.kill_connection()
 
-            return json.dumps({
+            return {
                 'message': 'request successfully added',
-            }), 201
+            }, 201
 
 
 class resolveRequest(Resource):
 
-    def post(self, req_id):
+    def get(self, req_id):
         """ a  function for resolving a specific request """
         dbcall = DbCalls()
         con_status = dbcall.connect_to_db()
@@ -308,11 +314,12 @@ class resolveRequest(Resource):
         if(con_status == True):
             dbcall.resolve_request(req_id)
             dbcall.kill_connection()
+            return {"message":"request resolved successfully"}, 200
 
 
 class approveRequest(Resource):
-
-    def post(self, req_id):
+    @jwt_required
+    def get(self, req_id):
         """ a  function for approving a specific request """
         dbcall = DbCalls()
         con_status = dbcall.connect_to_db()
@@ -320,11 +327,12 @@ class approveRequest(Resource):
         if(con_status == True):
             dbcall.approve_request(req_id)
         dbcall.kill_connection()
+        return {"message":"request approved successfully"}, 200
 
 
 class disapproveRequest(Resource):
-
-    def post(self, req_id):
+    @jwt_required
+    def get(self, req_id):
         """ a  function for disapproving a specific request """
         dbcall = DbCalls()
         con_status = dbcall.connect_to_db()
@@ -333,10 +341,11 @@ class disapproveRequest(Resource):
             dbcall.disapprove_request(req_id)
 
         dbcall.kill_connection()
+        return {"message":"request disapproved successfully"}, 200
 
 
 class getAllRequests(Resource):
-
+    @jwt_required
     def get(self):
         """ a  function for getting all requests on the application """
         dbcall = DbCalls()
@@ -344,8 +353,8 @@ class getAllRequests(Resource):
 
         if(con_status == True):
             result = dbcall.get_all_requests()
-
-        dbcall.kill_connection()
+            dbcall.kill_connection()
+            return result, 200
 
 
 api.add_resource(myIndex, '/')

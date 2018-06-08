@@ -15,12 +15,11 @@ class DbCalls:
     def connect_to_db(self):
         """ This function creates a connection to the database server"""
         """and a cursor object through which querries are executed"""
-        try:
-            self.con = psycopg2.connect(self.connection_string)
-            self.cur = self.con.cursor()
-            return True
-        except:
-            return False
+        
+        self.con = psycopg2.connect(self.connection_string)
+        self.cur = self.con.cursor()
+        return True
+        
 
     def create_new_user(self, email, password, role):
         """ This functions uses the cursor object to insert a new user/row to the users 
@@ -33,7 +32,7 @@ class DbCalls:
     def check_existing_user(self, email):
         """ a function to get if a user exists"""
 
-        self.cur.execute("SELECT * FROM users where email=%s", (email))
+        self.cur.execute("SELECT * FROM users where email= '{}'".format(email))
         while True:
 
             row = self.cur.fetchone()
@@ -48,7 +47,7 @@ class DbCalls:
         """This function uses the cursor object to check if a certain user exists in the users table
         given the user details provided"""
         result = []
-        self.cur.execute("SELECT * FROM users where email=%s", (email))
+        self.cur.execute("SELECT * FROM users where email = '{}'".format(email))
         row = self.cur.fetchone()
         result.append(row[1])
         result.append(row[2])
@@ -57,37 +56,35 @@ class DbCalls:
 
     def get_user_requests(self, email):
         """This function users the cursor object to get a user's requests from the requests table"""
-        self.cur.execute("SELECT * FROM requests where req_owner=%s", (email))
-        reqs = []
+        self.cur.execute("SELECT * FROM requests where req_owner='{}'".format(email))
+        reqs = {}
         while True:
 
             row = self.cur.fetchone()
 
             if row == None:
                 break
-            reqs.append(
-                {"req_title": row[1], "req_details": row[2], "req_owner": row[3], "req_status": row[4]})
+            reqs[row[0]] = {"req_title": row[1], "req_details": row[2], "req_owner": row[3], "req_status": row[4]}
         return reqs
 
     def get_all_requests(self):
         """ This function uses the cursor object to get all requests onnthe application 
         from the requests' table  """
         self.cur.execute("SELECT * FROM requests")
-        reqs = []
+        reqs = {}
         while True:
 
             row = self.cur.fetchone()
 
             if row == None:
                 break
-            reqs.append(
-                {"req_title": row[1], "req_details": row[2], "req_owner": row[3], "req_status": row[4]})
+            reqs[row[0]] = {"req_title": row[1], "req_details": row[2], "req_owner": row[3], "req_status": row[4]}
         return reqs
 
     def get_request(self, req_id):
         """This function uses the cursor object to get a specific request using its id from the
          requests table """
-        self.cur.execute("SELECT * FROM requests where id=%s", (req_id))
+        self.cur.execute("SELECT * FROM requests where id='{}'".format(req_id))
         result = ""
 
         while True:
@@ -112,21 +109,21 @@ class DbCalls:
     def delete_request(self, req_id):
         """ This function uses the cursor object to delete request/row from the requests table 
         given its id """
-        self.cur.execute("delete FROM requests where id=%s", (req_id))
+        self.cur.execute("delete FROM requests where id='{}'".format(req_id))
         self.con.commit()
 
     def edit_request(self, req_title, req_details, req_owner, req_status, req_id):
         """ This function uses the cursor object to edit/modify a request/row in the requests table """
 
-        self.cur.execute("UPDATE requests SET req_title=%s req_details=%s req_owner=%s req_status=%s WHERE req_id=%s",
-                         (req_title, req_details, req_owner, req_status, req_id))
+        self.cur.execute("UPDATE requests SET req_title='{}', req_details='{}', req_owner='{}', req_status='{}' WHERE id='{}'"
+                         .format(req_title, req_details, req_owner, req_status, req_id))
         self.con.commit()
 
     def approve_request(self, req_id):
         """ This function uses the cursor object to approve request/row in the requests table given 
         its id """
         req_status = "approved"
-        self.cur.execute("UPDATE requests SET  req_status=%s WHERE req_id=%s",
+        self.cur.execute("UPDATE requests SET  req_status=%s WHERE id=%s",
                          (req_status, req_id))
         self.con.commit()
 
@@ -134,7 +131,7 @@ class DbCalls:
         """ This function uses the cursor object to resolve a request/row in the requests table given 
         its id """
         req_status = "resolved"
-        self.cur.execute("UPDATE requests SET  req_status=%s WHERE req_id=%s",
+        self.cur.execute("UPDATE requests SET  req_status=%s WHERE id=%s",
                          (req_status, req_id))
         self.con.commit()
 
@@ -142,7 +139,7 @@ class DbCalls:
         """ This function uses the cursor object to disapprove request/row in the requests table given 
         its id """
         req_status = "disapprove"
-        self.cur.execute("UPDATE requests SET  req_status=%s WHERE req_id=%s",
+        self.cur.execute("UPDATE requests SET  req_status=%s WHERE id=%s",
                          (req_status, req_id))
         self.con.commit()
 
