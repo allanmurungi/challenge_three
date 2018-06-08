@@ -1,6 +1,7 @@
 import os
 import unittest
 from app import app
+from flask import json
 
  
 TEST_DB = 'test.db'
@@ -21,36 +22,39 @@ class BasicTests(unittest.TestCase):
         
         self.assertEqual(app.debug, False)
 
-    
     def test_login_missing_email(self):
-        """"""
-        response=self.login("","qwertyuiop");
+        """a test for the login end point"""
+
+        response=self.login("","qwertyuiop")
+        data=json.loads(response.data.decode('utf-8'))
         self.assertEqual(response.status_code, 400)
-        assert b'no username or email entered' in response.data
+        self.assertEqual('no username or email entered', data['message'])
         
         
     def test_login_missing_password(self):
-        response=self.login("p@gmail.com","");
+        """a test for the login end point"""
+        response=self.login("p@gmail.com","")
+        data=json.loads(response.data.decode('utf-8'))
         self.assertEqual(response.status_code, 400)
-        assert b'no password given' in response.data    
-        
-    
+        self.assertEqual('no password given', data['message'])     
 
-    
-    
-    
         
-    def test_login_empty_params(self):
-        response=self.login("","");
+    def test_login_invalid_email(self):
+        """ a test function/unit for an invalid email address """
+        response=self.login("Xddfvfv","qwertyuiop");
+        data=json.loads(response.data.decode('utf-8'))
         self.assertEqual(response.status_code, 400)
-        assert b'you have not entered email and password' in response.data
-           
-
+        self.assertEqual('The email address provided is invalid', data['message']) 
     
-
+    def test_login_short_password(self):
+        """ a test function/unit for a short passwod """
+        response=self.login("Xb@gmail.com","qwer");
+        data=json.loads(response.data.decode('utf-8'))
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual('The password is too short', data['message']) 
         
-    def login(self,email,password1):
-        return self.app.post('/login',data=dict(email=email,password1=password1),follow_redirects=True);
+    def login(self,email,password):
+        return self.app.post('/login',data=dict(email=email,password1=password),follow_redirects=True);
             
 
 
